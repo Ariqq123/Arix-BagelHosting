@@ -13,6 +13,29 @@
             <div class="box box-primary">
                 <div class="box-header with-border">
                     <h3 class="box-title"><i data-lucide="shield"></i> Admin Actions</h3>
+                    <div class="box-tools">
+                        <form action="{{ route('admin.logs') }}" method="GET" class="logs-filter">
+                            <div class="filter-group">
+                                <select name="filter[event]" class="form-control input-sm">
+                                    <option value="">All Events</option>
+                                    <option value="auth" {{ request('filter.event') === 'auth' ? 'selected' : '' }}>auth:*</option>
+                                    <option value="user" {{ request('filter.event') === 'user' ? 'selected' : '' }}>user:*</option>
+                                    <option value="server" {{ request('filter.event') === 'server' ? 'selected' : '' }}>server:*</option>
+                                    <option value="settings" {{ request('filter.event') === 'settings' ? 'selected' : '' }}>settings:*</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <input type="text" name="filter[search]" value="{{ request('filter.search') }}" class="form-control input-sm" placeholder="Search">
+                            </div>
+                            <div class="filter-group">
+                                <input type="date" name="filter[since]" value="{{ request('filter.since') }}" class="form-control input-sm">
+                            </div>
+                            <div class="filter-group">
+                                <input type="date" name="filter[until]" value="{{ request('filter.until') }}" class="form-control input-sm">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm"><i data-lucide="filter"></i></button>
+                        </form>
+                    </div>
                 </div>
 
                 <div class="box-body table-responsive no-padding">
