@@ -92,7 +92,7 @@ class PackSquashService
 
             // Generate temporary TOML options file
             $optionsFile = tempnam(sys_get_temp_dir(), 'packsquash_') . '.toml';
-            $toml = "pack_directory = \"/input\"\noutput_file_path = \"/output/" . basename($outputPath) . "\"\n";
+            $toml = "pack_directory = \"/input\"\noutput_file_path = \"/output/" . basename($outputPath) . "\"\nmaximum_width_and_height = 16384\n";
             file_put_contents($optionsFile, $toml);
 
             // Docker run with options file mounted
