@@ -47,11 +47,12 @@ class PackSquashService
             @mkdir($extractedDir, 0755, true);
 
             $zip = new \ZipArchive();
-            if ($zip->open($inputPath) === true) {
+            $openResult = $zip->open($inputPath);
+            if ($openResult === true) {
                 $zip->extractTo($extractedDir);
                 $zip->close();
             } else {
-                throw new \RuntimeException('Failed to extract uploaded ZIP file.');
+                throw new \RuntimeException('Failed to extract uploaded ZIP file. ZipArchive error: ' . $zip->getStatusString());
             }
 
             // Detect if the pack is inside a single top-level folder (very common)
