@@ -54,6 +54,16 @@ class PackSquashService
                 throw new \RuntimeException('Failed to extract uploaded ZIP file.');
             }
 
+            // Detect if the pack is inside a single top-level folder (very common)
+            $entries = array_diff(scandir($extractedDir), ['.', '..']);
+            if (count($entries) === 1) {
+                $singleEntry = $entries[array_key_first($entries)];
+                $singleEntryPath = $extractedDir . '/' . $singleEntry;
+                if (is_dir($singleEntryPath) && file_exists($singleEntryPath . '/pack.mcmeta')) {
+                    $extractedDir = $singleEntryPath;
+                }
+            }
+
             // Generate temporary TOML options file
             $optionsFile = tempnam(sys_get_temp_dir(), 'packsquash_') . '.toml';
             $toml = "pack_directory = \"/input\"\noutput_file_path = \"/output/" . basename($outputPath) . "\"\n";
