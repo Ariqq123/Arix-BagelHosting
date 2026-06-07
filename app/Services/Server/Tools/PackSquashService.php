@@ -52,14 +52,22 @@ class PackSquashService
             $process->setTimeout(300);
             $process->run();
 
-            if (!$process->isSuccessful()) {
-                $errorOutput = $process->getErrorOutput();
+            $stdout = $process->getOutput();
+            $stderr = $process->getErrorOutput();
+            $combinedLogs = trim($stdout . "\n" . $stderr);
 
-                if (str_contains($errorOutput, 'permission denied while trying to connect to the docker API')) {
+            if (!$process->isSuccessful()) {
+                if (str_contains($stderr, 'permission denied while trying to connect to the docker API')) {
                     throw new \RuntimeException(
-                        'Docker is not accessible by the web server. Please add the www-data user to the docker group and restart PHP-FPM.'
+                        'Docker is not accessible. Please ensure the packsquash system user exists, is in the docker group, and that the sudoers rule is correctly configured.'
                     );
                 }
+
+                // Store logs on the run record before throwing
+                $run->update([
+                    'meta' => array_merge($run->meta ?? [], ['logs' => $combinedLogs]),
+                    'error_message' => 'PackSquash process failed. Check logs for details.',
+                ]);
 
                 throw new ProcessFailedException($process);
             }
