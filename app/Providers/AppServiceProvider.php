@@ -16,6 +16,8 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 // Blueprint-related shenanigans imports
 use Pterodactyl\Providers\Blueprint\ExtensionfsConfigProvider;
 use Pterodactyl\Providers\Blueprint\RouteServiceProvider;
+use Pterodactyl\Contracts\PackHost;
+use Pterodactyl\Services\PackHosts\McpacksDevHost;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -77,6 +79,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton('extensions.themes', function () {
             return new Theme();
         });
+
+        // PackSquash pack host binding
+        $this->app->bind(PackHost::class, McpacksDevHost::class);
     }
 
     /**
