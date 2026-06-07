@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-export type PackSquashPreset = 'balanced' | 'aggressive' | 'maximum' | 'custom';
+export type PackSquashPreset = 'max_compression' | 'balanced' | 'fastest' | 'protection';
 
 interface Props {
     value: PackSquashPreset;
@@ -10,10 +10,10 @@ interface Props {
 }
 
 const presets: { key: PackSquashPreset; label: string }[] = [
+    { key: 'max_compression', label: 'preset-max_compression' },
     { key: 'balanced', label: 'preset-balanced' },
-    { key: 'aggressive', label: 'preset-aggressive' },
-    { key: 'maximum', label: 'preset-maximum' },
-    { key: 'custom', label: 'preset-custom' },
+    { key: 'fastest', label: 'preset-fastest' },
+    { key: 'protection', label: 'preset-protection' },
 ];
 
 export default function PresetSelector({ value, onChange, disabled }: Props) {
