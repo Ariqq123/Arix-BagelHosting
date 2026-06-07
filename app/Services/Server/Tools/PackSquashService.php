@@ -45,7 +45,7 @@ class PackSquashService
                 ['sudo', '-u', 'packsquash', '/usr/local/bin/packsquash-docker', '--rm',
                     '-v', dirname($inputPath) . ':/input',
                     '-v', dirname($outputPath) . ':/output',
-                    'packsquash:latest'],
+                    'ghcr.io/comunidadaylas/packsquash:latest'],
                 $flags,
                 ['/input/' . basename($inputPath), '/output/' . basename($outputPath)]
             ));
