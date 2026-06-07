@@ -36,10 +36,23 @@ class PackSquashService
         ]);
 
         $optionsFile = null;
+        $extractedDir = null;
 
         try {
             $outputPath = storage_path("app/server-tools/{$server->uuid}/packsquash/" . uniqid() . '.zip');
             @mkdir(dirname($outputPath), 0755, true);
+
+            // Extract uploaded ZIP to a temporary directory
+            $extractedDir = storage_path("app/server-tools/{$server->uuid}/packsquash/extracted_" . uniqid());
+            @mkdir($extractedDir, 0755, true);
+
+            $zip = new \ZipArchive();
+            if ($zip->open($inputPath) === true) {
+                $zip->extractTo($extractedDir);
+                $zip->close();
+            } else {
+                throw new \RuntimeException('Failed to extract uploaded ZIP file.');
+            }
 
             // Generate temporary TOML options file
             $optionsFile = tempnam(sys_get_temp_dir(), 'packsquash_') . '.toml';
@@ -50,7 +63,7 @@ class PackSquashService
             $process = new Process([
                 'sudo', '-u', 'packsquash', '/usr/local/bin/packsquash-docker',
                 '--rm',
-                '-v', dirname($inputPath) . ':/input:ro',
+                '-v', $extractedDir . ':/input:ro',
                 '-v', dirname($outputPath) . ':/output',
                 '-v', $optionsFile . ':/config/options.toml:ro',
                 'ghcr.io/comunidadaylas/packsquash:latest',
@@ -121,6 +134,18 @@ class PackSquashService
         } finally {
             if ($optionsFile && file_exists($optionsFile)) {
                 @unlink($optionsFile);
+            }
+            if ($extractedDir && is_dir($extractedDir)) {
+                // Recursive delete of extracted directory
+                $files = new \RecursiveIteratorIterator(
+                    new \RecursiveDirectoryIterator($extractedDir, \RecursiveDirectoryIterator::SKIP_DOTS),
+                    \RecursiveIteratorIterator::CHILD_FIRST
+                );
+                foreach ($files as $fileinfo) {
+                    $todo = ($fileinfo->isDir() ? 'rmdir' : 'unlink');
+                    @$todo($fileinfo->getRealPath());
+                }
+                @rmdir($extractedDir);
             }
         }
     }
