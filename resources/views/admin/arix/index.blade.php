@@ -47,9 +47,9 @@
             <small>Leave empty to remove the support link from your panel</small>
         </div>
         <div class="input-field hr">
-            <label for="arix:tos_content">Terms of Service content</label>
-            <textarea id="arix:tos_content" name="arix:tos_content" rows="10">{{ old('arix:tos_content', $tos_content ?? '') }}</textarea>
-            <small>Leave empty to hide the TOS link from the navbar. HTML is allowed.</small>
+            <label>Terms of Service</label>
+            <a href="{{ route('admin.arix.tos') }}" class="button button-primary">Edit TOS Content →</a>
+            <small>Opens dedicated editor page (recommended for long HTML content).</small>
         </div>
         <div class="floating-button">
             {!! csrf_field() !!}

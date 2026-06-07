@@ -42,6 +42,9 @@ Route::group(['prefix' => 'arix'], function () {
     Route::get('/advanced', [Admin\Arix\ArixAdvancedController::class, 'index'])->name('admin.arix.advanced');
     Route::post('/advanced', [Admin\Arix\ArixAdvancedController::class, 'store']);
 
+    Route::get('/tos', [Admin\Arix\ArixTosController::class, 'index'])->name('admin.arix.tos');
+    Route::post('/tos', [Admin\Arix\ArixTosController::class, 'store']);
+
     Route::get('/plugins', [Admin\Arix\ArixPluginsController::class, 'index'])->name('admin.arix.plugins');
     Route::post('/plugins', [Admin\Arix\ArixPluginsController::class, 'store']);
     Route::patch('/plugins/settings', [Admin\Arix\ArixPluginsController::class, 'updateSettings'])->name('admin.arix.plugins.settings');
@@ -292,4 +295,3 @@ Route::group(['prefix' => 'nests'], function () {
 |
 */
 Route::get('/logs', [Admin\LogsController::class, 'index'])->name('admin.logs');
-

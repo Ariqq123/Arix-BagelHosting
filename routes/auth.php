@@ -49,7 +49,17 @@ Route::post('/logout', [Auth\LoginController::class, 'logout'])
     ->middleware('auth')
     ->name('auth.logout');
 
+// Public TOS page (Arix). Config-driven; aborts with 404 if tos_content empty.
+// Must be registered before the fallback.
+Route::get('/tos', function () {
+    $tosContent = config('arix.tos_content');
+
+    if (empty(trim($tosContent ?? ''))) {
+        abort(404);
+    }
+
+    return view('arix.tos', ['tos_content' => $tosContent]);
+})->name('arix.tos');
+
 // Catch any other combinations of routes and pass them off to the React component.
 Route::fallback([Auth\LoginController::class, 'index']);
-
-Route::get('/arix', [Auth\ArixController::class, 'index']);
