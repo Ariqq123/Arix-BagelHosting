@@ -21,7 +21,8 @@ export default function PackSquashTool() {
     const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
     const [preset, setPreset] = useState<PackSquashPreset>('balanced');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [status, setStatus] = useState<'idle' | 'running' | 'complete' | 'error'>('idle');
+    const [status, setStatus] = useState<'idle' | 'uploading' | 'running' | 'complete' | 'error'>('idle');
+    const [uploadProgress, setUploadProgress] = useState(0);
     const [result, setResult] = useState<ResultData | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [logs, setLogs] = useState<string[]>([]);
@@ -44,7 +45,8 @@ export default function PackSquashTool() {
             return;
         }
 
-        setStatus('running');
+        setStatus('uploading');
+        setUploadProgress(0);
         setError(null);
         setResult(null);
         setLogs([]);
@@ -60,6 +62,12 @@ export default function PackSquashTool() {
                 {
                     headers: {
                         'Content-Type': 'multipart/form-data',
+                    },
+                    onUploadProgress: (progressEvent) => {
+                        const percentCompleted = Math.round(
+                            (progressEvent.loaded * 100) / (progressEvent.total || 1)
+                        );
+                        setUploadProgress(percentCompleted);
                     },
                 }
             );
@@ -109,10 +117,19 @@ export default function PackSquashTool() {
                 </div>
 
                 <div>
-                    <Button onClick={handleRun} disabled={status === 'running' || !selectedFile}>
-                        {status === 'running' ? t('running') : t('run-optimization')}
+                    <Button onClick={handleRun} disabled={status === 'uploading' || status === 'running' || !selectedFile}>
+                        {status === 'uploading' ? `Uploading... ${uploadProgress}%` : status === 'running' ? t('running') : t('run-optimization')}
                     </Button>
                 </div>
+
+                {status === 'uploading' && (
+                    <div className="w-full bg-gray-700 rounded-full h-2.5">
+                        <div
+                            className="bg-emerald-500 h-2.5 rounded-full transition-all duration-200"
+                            style={{ width: `${uploadProgress}%` }}
+                        />
+                    </div>
+                )}
 
                 {error && (
                     <div className={'bg-red-900 bg-opacity-30 border border-red-700 rounded-component px-4 py-3 text-sm text-red-300'}>
