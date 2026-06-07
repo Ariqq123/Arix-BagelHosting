@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Services\PackHosts;
+namespace Pterodactyl\Services\PackHosts;
 
-use App\Contracts\PackHost;
-use App\Exceptions\PackHostException;
+use Pterodactyl\Contracts\PackHost;
+use Pterodactyl\Exceptions\Service\PackHostException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
