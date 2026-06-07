@@ -1,11 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/elements/button/index';
 import { DownloadIcon, ExternalLinkIcon } from '@heroicons/react/outline';
+import ConfirmationModal from '@/components/elements/ConfirmationModal';
+import { ServerContext } from '@/state/server';
+import axios from 'axios';
 
 interface ResultData {
     downloadUrl?: string;
     viewUrl?: string;
+    sha1?: string;
     originalSize?: number;
     optimizedSize?: number;
 }
@@ -24,10 +28,38 @@ function formatBytes(bytes: number): string {
 
 export default function ResultActions({ result }: Props) {
     const { t } = useTranslation('arix/server/tools');
+    const [showWarningModal, setShowWarningModal] = useState(false);
+    const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
 
     const savings = result.originalSize && result.optimizedSize
         ? Math.round((1 - result.optimizedSize / result.originalSize) * 100)
         : null;
+
+    const applyToServer = async () => {
+        if (!result.viewUrl || !result.sha1) {
+            return;
+        }
+
+        try {
+            // Update resource-pack URL
+            await axios.put(`/api/client/servers/${uuid}/startup/variable`, {
+                key: 'RESOURCE_PACK',
+                value: result.viewUrl,
+            });
+
+            // Update resource-pack-sha1
+            await axios.put(`/api/client/servers/${uuid}/startup/variable`, {
+                key: 'RESOURCE_PACK_SHA1',
+                value: result.sha1,
+            });
+
+            setShowWarningModal(false);
+            // Optionally show success notification here
+        } catch (error) {
+            console.error('Failed to apply resource pack to server:', error);
+            // Optionally show error notification here
+        }
+    };
 
     return (
         <div className={'bg-gray-700 rounded-box p-5 mt-4'}>
@@ -50,6 +82,11 @@ export default function ResultActions({ result }: Props) {
                         </Button.Text>
                     </a>
                 )}
+                {result.viewUrl && result.sha1 && (
+                    <Button onClick={() => setShowWarningModal(true)}>
+                        {t('results.apply-to-server')}
+                    </Button>
+                )}
             </div>
 
             {(result.originalSize || result.optimizedSize) && (
@@ -66,6 +103,18 @@ export default function ResultActions({ result }: Props) {
                         </span>
                     )}
                 </div>
+            )}
+
+            {showWarningModal && (
+                <ConfirmationModal
+                    title={t('results.apply-warning-title')}
+                    buttonText={t('results.apply-confirm')}
+                    onConfirmed={applyToServer}
+                    visible={showWarningModal}
+                    onModalDismissed={() => setShowWarningModal(false)}
+                >
+                    {t('results.apply-warning-message')}
+                </ConfirmationModal>
             )}
         </div>
     );
