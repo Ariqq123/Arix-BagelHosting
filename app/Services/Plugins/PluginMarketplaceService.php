@@ -357,7 +357,7 @@ class PluginMarketplaceService
             'versionNumber' => (string) Arr::get($version, 'name', 'latest'),
             'createdAt' => Arr::get($version, 'releaseDate') ? date(DATE_ATOM, (int) Arr::get($version, 'releaseDate')) : null,
             'filename' => $fallback,
-            'downloadUrl' => "https://api.spiget.org/v2/resources/{$project}/download",
+            'downloadUrl' => $this->resolveDownloadUrl("https://api.spiget.org/v2/resources/{$project}/download") ?? "https://api.spiget.org/v2/resources/{$project}/download",
         ])->values()->all();
     }
 
