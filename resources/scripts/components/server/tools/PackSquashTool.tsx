@@ -3,9 +3,11 @@ import { useTranslation } from 'react-i18next';
 import PresetSelector, { PackSquashPreset } from './PresetSelector';
 import OptimizationProgress from './OptimizationProgress';
 import ResultActions from './ResultActions';
+import LogTerminal from './LogTerminal';
 import { Button } from '@/components/elements/button/index';
 import { ServerContext } from '@/state/server';
 import axios from 'axios';
+import ServerContentBlock from '@/components/elements/ServerContentBlock';
 
 interface ResultData {
     downloadUrl?: string;
@@ -22,6 +24,7 @@ export default function PackSquashTool() {
     const [status, setStatus] = useState<'idle' | 'running' | 'complete' | 'error'>('idle');
     const [result, setResult] = useState<ResultData | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [logs, setLogs] = useState<string[]>([]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -44,6 +47,7 @@ export default function PackSquashTool() {
         setStatus('running');
         setError(null);
         setResult(null);
+        setLogs([]);
 
         try {
             const formData = new FormData();
@@ -60,6 +64,11 @@ export default function PackSquashTool() {
                 }
             );
 
+            const responseLogs = response.data.meta?.logs;
+            if (responseLogs) {
+                setLogs(responseLogs.split('\n').filter(Boolean));
+            }
+
             setResult({
                 downloadUrl: response.data.download_url,
                 viewUrl: response.data.view_url,
@@ -68,18 +77,18 @@ export default function PackSquashTool() {
             });
             setStatus('complete');
         } catch (err: any) {
+            const responseLogs = err.response?.data?.run?.meta?.logs;
+            if (responseLogs) {
+                setLogs(responseLogs.split('\n').filter(Boolean));
+            }
+
             setStatus('error');
             setError(err.response?.data?.error || t('errors.optimization-failed'));
         }
     };
 
     return (
-        <div className={'bg-gray-700 rounded-box p-6'}>
-            <div className={'mb-6'}>
-                <h3 className={'text-xl font-semibold text-gray-100 mb-1'}>{t('packsquash')}</h3>
-                <p className={'text-sm text-gray-400'}>{t('packsquash-description')}</p>
-            </div>
-
+        <ServerContentBlock title={t('packsquash')} description={t('packsquash-description')}>
             <div className={'space-y-6'}>
                 <PresetSelector value={preset} onChange={setPreset} disabled={status === 'running'} />
 
@@ -113,8 +122,16 @@ export default function PackSquashTool() {
 
                 <OptimizationProgress status={status} />
 
+                {(status === 'running' || logs.length > 0) && (
+                    <LogTerminal
+                        logs={logs}
+                        isLive={status === 'running'}
+                        title="PackSquash Output"
+                    />
+                )}
+
                 {result && <ResultActions result={result} />}
             </div>
-        </div>
+        </ServerContentBlock>
     );
 }

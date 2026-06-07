@@ -22,8 +22,21 @@ class PackSquashController extends Controller
 
         $path = $request->file('pack')->store("server-tools/{$server->uuid}/input");
 
-        $run = $this->service->optimize($server, storage_path("app/{$path}"), $request->preset);
+        try {
+            $run = $this->service->optimize($server, storage_path("app/{$path}"), $request->preset);
+            return response()->json($run);
+        } catch (\Throwable $e) {
+            // Fetch the most recent failed run so we can return logs
+            $failedRun = \Pterodactyl\Models\ServerToolRun::where('server_id', $server->id)
+                ->where('tool', 'packsquash')
+                ->where('status', 'failed')
+                ->latest()
+                ->first();
 
-        return response()->json($run);
+            return response()->json([
+                'error' => $e->getMessage(),
+                'run'   => $failedRun,
+            ], 422);
+        }
     }
 }
