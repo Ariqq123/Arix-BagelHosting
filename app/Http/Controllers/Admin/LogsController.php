@@ -10,13 +10,33 @@ class LogsController extends Controller
 {
     public function index(Request $request)
     {
-        $logs = ActivityLog::query()
+        $query = ActivityLog::query()
             ->whereHas('actor', function ($q) {
                 $q->where('root_admin', true);
             })
-            ->with('actor')
-            ->orderBy('timestamp', 'desc')
-            ->paginate(25);
+            ->with('actor');
+
+        if ($request->filled('filter.event')) {
+            $query->where('event', 'like', $request->input('filter.event') . '%');
+        }
+
+        if ($request->filled('filter.search')) {
+            $search = $request->input('filter.search');
+            $query->where(function ($q) use ($search) {
+                $q->where('properties', 'like', "%{$search}%")
+                  ->orWhere('ip', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('filter.since')) {
+            $query->where('timestamp', '>=', $request->input('filter.since'));
+        }
+
+        if ($request->filled('filter.until')) {
+            $query->where('timestamp', '<=', $request->input('filter.until'));
+        }
+
+        $logs = $query->orderBy('timestamp', 'desc')->paginate(25);
 
         return view('admin.logs.index', ['logs' => $logs]);
     }
