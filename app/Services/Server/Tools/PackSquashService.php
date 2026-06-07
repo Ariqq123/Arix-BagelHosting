@@ -5,6 +5,8 @@ namespace Pterodactyl\Services\Server\Tools;
 use Pterodactyl\Contracts\PackHost;
 use Pterodactyl\Models\Server;
 use Pterodactyl\Models\ServerToolRun;
+use Symfony\Component\Process\Process;
+use Symfony\Component\Process\Exception\ProcessFailedException;
 
 class PackSquashService
 {
@@ -37,13 +39,21 @@ class PackSquashService
             $outputPath = storage_path("app/server-tools/{$server->uuid}/packsquash/" . uniqid() . '.zip');
             @mkdir(dirname($outputPath), 0755, true);
 
-            // Docker run (simplified — real impl would use Symfony Process + volume mounts)
+            // Docker run via Symfony Process (safe array-based command execution)
             $flags = $this->presetFlags[$preset] ?? [];
-            $cmd = array_merge(['docker', 'run', '--rm', '-v', dirname($inputPath).':/input', '-v', dirname($outputPath).':/output', 'packsquash:latest'], $flags, ['/input/'.basename($inputPath), '/output/'.basename($outputPath)]);
-            exec(implode(' ', $cmd), $output, $code);
+            $process = new Process(array_merge(
+                ['docker', 'run', '--rm',
+                    '-v', dirname($inputPath) . ':/input',
+                    '-v', dirname($outputPath) . ':/output',
+                    'packsquash:latest'],
+                $flags,
+                ['/input/' . basename($inputPath), '/output/' . basename($outputPath)]
+            ));
+            $process->setTimeout(300);
+            $process->run();
 
-            if ($code !== 0) {
-                throw new \RuntimeException('PackSquash failed: ' . implode("\n", $output));
+            if (!$process->isSuccessful()) {
+                throw new ProcessFailedException($process);
             }
 
             $downloadUrl = $this->packHost->upload($outputPath, basename($outputPath));
