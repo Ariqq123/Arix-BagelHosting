@@ -38,8 +38,20 @@ class LogsController extends Controller
             $query->where('timestamp', '<=', $request->input('filter.until'));
         }
 
-        $logs = $query->orderBy('timestamp', 'desc')->paginate(25);
+        $adminLogs = (clone $query)
+            ->whereHas('actor', fn($q) => $q->where('root_admin', true))
+            ->orderBy('timestamp', 'desc')
+            ->paginate(15, ['*'], 'admin_page');
 
-        return view('admin.logs.index', ['logs' => $logs]);
+        $userLogs = (clone $query)
+            ->whereIn('event', ['auth:fail', 'user:error'])
+            ->whereDoesntHave('actor', fn($q) => $q->where('root_admin', true))
+            ->orderBy('timestamp', 'desc')
+            ->paginate(15, ['*'], 'user_page');
+
+        return view('admin.logs.index', [
+            'adminLogs' => $adminLogs,
+            'userLogs' => $userLogs,
+        ]);
     }
 }

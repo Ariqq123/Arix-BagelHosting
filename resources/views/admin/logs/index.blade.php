@@ -8,43 +8,11 @@
 
 @section('content')
     <div class="row">
+        {{-- Admin Actions --}}
         <div class="col-xs-12">
             <div class="box box-primary">
                 <div class="box-header with-border">
-                    <h3 class="box-title">Logs</h3>
-                </div>
-
-                <div class="box-header with-border" style="padding-top: 0; padding-bottom: 8px; border-top: none;">
-                    <form action="{{ route('admin.logs') }}" method="GET" class="logs-filter">
-                        <div class="filter-group">
-                            <label class="filter-label">Event</label>
-                            <select name="filter[event]" class="form-control input-sm">
-                                <option value="">All</option>
-                                <option value="auth" {{ request('filter.event') === 'auth' ? 'selected' : '' }}>auth:*</option>
-                                <option value="user" {{ request('filter.event') === 'user' ? 'selected' : '' }}>user:*</option>
-                                <option value="server" {{ request('filter.event') === 'server' ? 'selected' : '' }}>server:*</option>
-                                <option value="settings" {{ request('filter.event') === 'settings' ? 'selected' : '' }}>settings:*</option>
-                                <option value="node" {{ request('filter.event') === 'node' ? 'selected' : '' }}>node:*</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label class="filter-label">Search</label>
-                            <input type="text" name="filter[search]" value="{{ request('filter.search') }}" class="form-control input-sm" placeholder="IP / properties">
-                        </div>
-                        <div class="filter-group">
-                            <label class="filter-label">From</label>
-                            <input type="date" name="filter[since]" value="{{ request('filter.since') }}" class="form-control input-sm">
-                        </div>
-                        <div class="filter-group">
-                            <label class="filter-label">To</label>
-                            <input type="date" name="filter[until]" value="{{ request('filter.until') }}" class="form-control input-sm">
-                        </div>
-                        <div class="filter-group filter-actions">
-                            <button type="submit" class="btn btn-primary btn-sm">
-                                <i data-lucide="filter"></i> <span>Filter</span>
-                            </button>
-                        </div>
-                    </form>
+                    <h3 class="box-title"><i data-lucide="shield"></i> Admin Actions</h3>
                 </div>
 
                 <div class="box-body table-responsive no-padding">
@@ -59,7 +27,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($logs as $log)
+                            @forelse($adminLogs as $log)
                                 <tr>
                                     <td>{{ $log->timestamp }}</td>
                                     <td>{{ $log->actor?->username ?? 'System' }}</td>
@@ -67,13 +35,54 @@
                                     <td>{{ $log->subject_type ? class_basename($log->subject_type).'#'.$log->subject_id : '-' }}</td>
                                     <td>{{ $log->ip }}</td>
                                 </tr>
-                            @endforeach
+                            @empty
+                                <tr><td colspan="5" class="text-center text-muted">No admin actions found.</td></tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
-                @if($logs->hasPages())
+                @if($adminLogs->hasPages())
                     <div class="box-footer with-border">
-                        {{ $logs->appends(request()->query())->render() }}
+                        {{ $adminLogs->appends(request()->query())->links() }}
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        {{-- User Errors & Failed Logins --}}
+        <div class="col-xs-12">
+            <div class="box box-warning">
+                <div class="box-header with-border">
+                    <h3 class="box-title"><i data-lucide="alert-triangle"></i> User Errors & Failed Logins</h3>
+                </div>
+
+                <div class="box-body table-responsive no-padding">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>User / Attempt</th>
+                                <th>Event</th>
+                                <th>IP</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($userLogs as $log)
+                                <tr>
+                                    <td>{{ $log->timestamp }}</td>
+                                    <td>{{ $log->actor?->username ?? ($log->properties['email'] ?? 'Unknown') }}</td>
+                                    <td><code>{{ $log->event }}</code></td>
+                                    <td>{{ $log->ip }}</td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="4" class="text-center text-muted">No user errors found.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                @if($userLogs->hasPages())
+                    <div class="box-footer with-border">
+                        {{ $userLogs->appends(request()->query())->links() }}
                     </div>
                 @endif
             </div>
