@@ -13,20 +13,27 @@
                 <div class="box-header with-border">
                     <h3 class="box-title">Logs</h3>
                     <div class="box-tools search01">
-                        <form action="{{ route('admin.logs') }}" method="GET" class="form-inline">
-                            <div class="input-group input-group-sm" style="width: 150px; margin-right: 5px;">
-                                <input type="text" name="filter[event]" value="{{ request('filter.event') }}" class="form-control pull-right" placeholder="Event (e.g. auth)">
+                        <form action="{{ route('admin.logs') }}" method="GET">
+                            <div class="input-group input-group-sm" style="display: inline-block; width: auto; vertical-align: top; margin-right: 5px;">
+                                <select name="filter[event]" class="form-control" style="width: 160px;">
+                                    <option value="">All Events</option>
+                                    <option value="auth" {{ request('filter.event') === 'auth' ? 'selected' : '' }}>auth:*</option>
+                                    <option value="user" {{ request('filter.event') === 'user' ? 'selected' : '' }}>user:*</option>
+                                    <option value="server" {{ request('filter.event') === 'server' ? 'selected' : '' }}>server:*</option>
+                                    <option value="settings" {{ request('filter.event') === 'settings' ? 'selected' : '' }}>settings:*</option>
+                                    <option value="node" {{ request('filter.event') === 'node' ? 'selected' : '' }}>node:*</option>
+                                </select>
                             </div>
-                            <div class="input-group input-group-sm" style="width: 150px; margin-right: 5px;">
-                                <input type="text" name="filter[search]" value="{{ request('filter.search') }}" class="form-control pull-right" placeholder="Search IP/properties">
+                            <div class="input-group input-group-sm" style="display: inline-block; width: auto; vertical-align: top; margin-right: 5px;">
+                                <input type="text" name="filter[search]" value="{{ request('filter.search') }}" class="form-control" style="width: 160px;" placeholder="Search IP / properties">
                             </div>
-                            <div class="input-group input-group-sm" style="width: 120px; margin-right: 5px;">
-                                <input type="date" name="filter[since]" value="{{ request('filter.since') }}" class="form-control">
+                            <div class="input-group input-group-sm" style="display: inline-block; width: auto; vertical-align: top; margin-right: 5px;">
+                                <input type="date" name="filter[since]" value="{{ request('filter.since') }}" class="form-control" style="width: 130px;">
                             </div>
-                            <div class="input-group input-group-sm" style="width: 120px; margin-right: 5px;">
-                                <input type="date" name="filter[until]" value="{{ request('filter.until') }}" class="form-control">
+                            <div class="input-group input-group-sm" style="display: inline-block; width: auto; vertical-align: top; margin-right: 5px;">
+                                <input type="date" name="filter[until]" value="{{ request('filter.until') }}" class="form-control" style="width: 130px;">
                             </div>
-                            <div class="input-group input-group-sm">
+                            <div class="input-group input-group-sm" style="display: inline-block; width: auto; vertical-align: top;">
                                 <button type="submit" class="btn btn-default btn-sm"><i class="fa fa-search"></i></button>
                             </div>
                         </form>
