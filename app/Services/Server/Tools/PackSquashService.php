@@ -53,6 +53,14 @@ class PackSquashService
             $process->run();
 
             if (!$process->isSuccessful()) {
+                $errorOutput = $process->getErrorOutput();
+
+                if (str_contains($errorOutput, 'permission denied while trying to connect to the docker API')) {
+                    throw new \RuntimeException(
+                        'Docker is not accessible by the web server. Please add the www-data user to the docker group and restart PHP-FPM.'
+                    );
+                }
+
                 throw new ProcessFailedException($process);
             }
 
