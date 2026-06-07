@@ -46,13 +46,21 @@ class PackSquashService
             $extractedDir = storage_path("app/server-tools/{$server->uuid}/packsquash/extracted_" . uniqid());
             @mkdir($extractedDir, 0755, true);
 
+            if (!file_exists($inputPath)) {
+                throw new \RuntimeException("Uploaded file does not exist at path: {$inputPath}");
+            }
+
+            if (filesize($inputPath) < 100) {
+                throw new \RuntimeException("Uploaded file is too small to be a valid resource pack ZIP.");
+            }
+
             $zip = new \ZipArchive();
-            $openResult = $zip->open($inputPath);
-            if ($openResult === true) {
+            if ($zip->open($inputPath) === true) {
                 $zip->extractTo($extractedDir);
                 $zip->close();
             } else {
-                throw new \RuntimeException('Failed to extract uploaded ZIP file. ZipArchive error: ' . $zip->getStatusString());
+                $errorCode = $zip->status;
+                throw new \RuntimeException("Failed to extract uploaded ZIP file. ZipArchive error code: {$errorCode}");
             }
 
             // Detect if the pack is inside a single top-level folder (very common)
