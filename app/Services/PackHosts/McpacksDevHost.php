@@ -6,7 +6,6 @@ use App\Contracts\PackHost;
 use App\Exceptions\PackHostException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
-use Psr\Http\Message\ResponseInterface;
 
 class McpacksDevHost implements PackHost
 {
@@ -19,17 +18,27 @@ class McpacksDevHost implements PackHost
 
     public function upload(string $localPath, string $filename): string
     {
+        if (!is_file($localPath) || !is_readable($localPath)) {
+            throw new PackHostException('Local pack file is missing or not readable: ' . $localPath);
+        }
+
+        $stream = fopen($localPath, 'r');
+        if ($stream === false) {
+            throw new PackHostException('Failed to open local pack file for reading: ' . $localPath);
+        }
+
         try {
             $response = $this->client->post('https://mcpacks.dev/api/v1/packs', [
                 'multipart' => [
                     [
                         'name'     => 'file',
-                        'contents' => fopen($localPath, 'r'),
+                        'contents' => $stream,
                         'filename' => $filename,
                     ],
                 ],
             ]);
         } catch (GuzzleException $e) {
+            fclose($stream);
             throw new PackHostException('Failed to upload pack to mcpacks.dev: ' . $e->getMessage());
         }
 
@@ -40,9 +49,11 @@ class McpacksDevHost implements PackHost
         $data = json_decode((string) $response->getBody(), true);
 
         if (!isset($data['download_url'])) {
+            fclose($stream);
             throw new PackHostException('mcpacks.dev response missing download_url field');
         }
 
+        fclose($stream);
         return $data['download_url'];
     }
 }
