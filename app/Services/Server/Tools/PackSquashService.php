@@ -42,7 +42,7 @@ class PackSquashService
             // Docker run via Symfony Process (safe array-based command execution)
             $flags = $this->presetFlags[$preset] ?? [];
             $process = new Process(array_merge(
-                ['sudo', '-u', 'packsquash', 'docker', 'run', '--rm',
+                ['sudo', '-u', 'packsquash', '/usr/local/bin/packsquash-docker', '--rm',
                     '-v', dirname($inputPath) . ':/input',
                     '-v', dirname($outputPath) . ':/output',
                     'packsquash:latest'],
