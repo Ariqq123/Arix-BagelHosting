@@ -11,8 +11,10 @@ class LogsController extends Controller
     public function index(Request $request)
     {
         $query = ActivityLog::query()
-            ->whereHas('actor', function ($q) {
-                $q->where('root_admin', true);
+            ->where(function ($q) {
+                $q->whereHas('actor', function ($sub) {
+                    $sub->where('root_admin', true);
+                })->orWhereIn('event', ['auth:fail', 'user:error']);
             })
             ->with('actor');
 
