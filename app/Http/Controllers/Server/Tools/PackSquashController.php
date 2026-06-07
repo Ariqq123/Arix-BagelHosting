@@ -20,6 +20,11 @@ class PackSquashController extends Controller
             'preset' => 'required|in:max_compression,balanced,fastest,protection',
         ]);
 
+        $targetDir = storage_path("app/server-tools/{$server->uuid}/input");
+        @mkdir($targetDir, 0775, true);
+        @chown($targetDir, 'www-data');
+        @chgrp($targetDir, 'www-data');
+
         $path = $request->file('pack')->store("server-tools/{$server->uuid}/input");
 
         try {
