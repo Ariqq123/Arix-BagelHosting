@@ -35,20 +35,27 @@ class PackSquashService
             'started_at' => now(),
         ]);
 
+        $optionsFile = null;
+
         try {
             $outputPath = storage_path("app/server-tools/{$server->uuid}/packsquash/" . uniqid() . '.zip');
             @mkdir(dirname($outputPath), 0755, true);
 
-            // Docker run via Symfony Process (safe array-based command execution)
-            $flags = $this->presetFlags[$preset] ?? [];
-            $process = new Process(array_merge(
-                ['sudo', '-u', 'packsquash', '/usr/local/bin/packsquash-docker', '--rm',
-                    '-v', dirname($inputPath) . ':/input',
-                    '-v', dirname($outputPath) . ':/output',
-                    'ghcr.io/comunidadaylas/packsquash:latest'],
-                $flags,
-                ['/input/' . basename($inputPath), '/output/' . basename($outputPath)]
-            ));
+            // Generate temporary TOML options file
+            $optionsFile = tempnam(sys_get_temp_dir(), 'packsquash_') . '.toml';
+            $toml = "pack_directory = \"/input\"\noutput_file_path = \"/output/" . basename($outputPath) . "\"\n";
+            file_put_contents($optionsFile, $toml);
+
+            // Docker run with options file mounted
+            $process = new Process([
+                'sudo', '-u', 'packsquash', '/usr/local/bin/packsquash-docker',
+                '--rm',
+                '-v', dirname($inputPath) . ':/input:ro',
+                '-v', dirname($outputPath) . ':/output',
+                '-v', $optionsFile . ':/config/options.toml:ro',
+                'ghcr.io/comunidadaylas/packsquash:latest',
+                '/config/options.toml'
+            ]);
             $process->setTimeout(300);
             $process->run();
 
@@ -111,6 +118,10 @@ class PackSquashService
                 'completed_at' => now(),
             ]);
             throw $e;
+        } finally {
+            if ($optionsFile && file_exists($optionsFile)) {
+                @unlink($optionsFile);
+            }
         }
     }
 }
