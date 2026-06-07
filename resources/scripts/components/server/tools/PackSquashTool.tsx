@@ -4,6 +4,8 @@ import PresetSelector, { PackSquashPreset } from './PresetSelector';
 import OptimizationProgress from './OptimizationProgress';
 import ResultActions from './ResultActions';
 import { Button } from '@/components/elements/button/index';
+import { ServerContext } from '@/state/server';
+import axios from 'axios';
 
 interface ResultData {
     downloadUrl?: string;
@@ -14,6 +16,7 @@ interface ResultData {
 
 export default function PackSquashTool() {
     const { t } = useTranslation('arix/server/tools');
+    const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
     const [preset, setPreset] = useState<PackSquashPreset>('balanced');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [status, setStatus] = useState<'idle' | 'running' | 'complete' | 'error'>('idle');
@@ -42,23 +45,31 @@ export default function PackSquashTool() {
         setError(null);
         setResult(null);
 
-        // Placeholder for actual API call
-        // In production, this would POST to /api/client/servers/:uuid/tools/packsquash
         try {
-            // Simulate processing
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('preset', preset);
 
-            // Mock result for UI demonstration
+            const response = await axios.post(
+                `/api/client/servers/${uuid}/tools/packsquash`,
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                }
+            );
+
             setResult({
-                downloadUrl: '#',
-                viewUrl: '#',
-                originalSize: selectedFile.size,
-                optimizedSize: Math.floor(selectedFile.size * 0.6),
+                downloadUrl: response.data.download_url,
+                viewUrl: response.data.view_url,
+                originalSize: response.data.original_size,
+                optimizedSize: response.data.optimized_size,
             });
             setStatus('complete');
-        } catch (err) {
+        } catch (err: any) {
             setStatus('error');
-            setError(t('errors.optimization-failed'));
+            setError(err.response?.data?.error || t('errors.optimization-failed'));
         }
     };
 
