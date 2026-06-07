@@ -18,9 +18,9 @@ class PackSquashService
     }
 
     private array $presetFlags = [
-        'max_compression' => ['--compress-level', '9'],
+        'max_compression' => ['--compression-level', '9'],
         'balanced' => [],
-        'fastest' => ['--compress-level', '1'],
+        'fastest' => ['--compression-level', '1'],
         'protection' => ['--protect', 'true'],
     ];
 
