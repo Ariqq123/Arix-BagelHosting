@@ -29,6 +29,7 @@ class ServerToolRun extends Model
         'host_provider',
         'host_uuid',
         'download_url',
+        'view_url',
         'sha1',
         'original_size',
         'optimized_size',

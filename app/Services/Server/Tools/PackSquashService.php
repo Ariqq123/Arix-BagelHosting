@@ -56,12 +56,31 @@ class PackSquashService
                 throw new ProcessFailedException($process);
             }
 
-            $downloadUrl = $this->packHost->upload($outputPath, basename($outputPath));
+            $uploadResult = $this->packHost->upload($outputPath, basename($outputPath));
+
+            // Handle both string URLs (legacy) and JSON responses with view_url/sha1
+            if (is_string($uploadResult) && str_starts_with($uploadResult, '{')) {
+                $uploadData = json_decode($uploadResult, true);
+                $downloadUrl = $uploadData['download_url'] ?? $uploadResult;
+                $viewUrl = $uploadData['view_url'] ?? $downloadUrl;
+                $sha1 = $uploadData['sha1'] ?? null;
+            } else {
+                $downloadUrl = $uploadResult;
+                $viewUrl = $downloadUrl;
+                $sha1 = null;
+            }
+
+            // Compute sha1 locally if not provided by host
+            if ($sha1 === null && file_exists($outputPath)) {
+                $sha1 = sha1_file($outputPath) ?: null;
+            }
 
             $run->update([
                 'output_filename' => basename($outputPath),
                 'host_provider' => 'mcpacks_dev',
                 'download_url' => $downloadUrl,
+                'view_url' => $viewUrl,
+                'sha1' => $sha1,
                 'status' => 'completed',
                 'completed_at' => now(),
                 'original_size' => filesize($inputPath),

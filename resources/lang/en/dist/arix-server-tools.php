@@ -26,6 +26,10 @@ return [
     'results' => [
         'download' => 'Download',
         'view-online' => 'View Online',
+        'apply-to-server' => 'Apply to Server',
+        'apply-warning-title' => 'Apply Resource Pack?',
+        'apply-confirm' => 'Apply',
+        'apply-warning-message' => 'This will update your server\'s resource pack URL and SHA1. Continue?',
         'original-size' => 'Original',
         'optimized-size' => 'Optimized',
         'savings' => 'Savings',

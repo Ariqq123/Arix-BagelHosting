@@ -47,7 +47,7 @@ export default function PackSquashTool() {
 
         try {
             const formData = new FormData();
-            formData.append('file', selectedFile);
+            formData.append('pack', selectedFile);
             formData.append('preset', preset);
 
             const response = await axios.post(

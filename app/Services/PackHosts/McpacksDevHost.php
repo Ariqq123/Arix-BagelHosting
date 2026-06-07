@@ -54,6 +54,11 @@ class McpacksDevHost implements PackHost
         }
 
         fclose($stream);
-        return $data['download_url'];
+
+        return json_encode([
+            'download_url' => $data['download_url'],
+            'view_url' => $data['view_url'] ?? $data['download_url'],
+            'sha1' => $data['sha1'] ?? null,
+        ]);
     }
 }
