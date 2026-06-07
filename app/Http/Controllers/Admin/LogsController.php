@@ -10,13 +10,31 @@ class LogsController extends Controller
 {
     public function index(Request $request)
     {
-        $query = ActivityLog::query()
-            ->where(function ($q) {
-                $q->whereHas('actor', function ($sub) {
-                    $sub->where('root_admin', true);
-                })->orWhereIn('event', ['auth:fail', 'user:error']);
-            })
-            ->with('actor');
+        $baseQuery = $this->applyFilters(ActivityLog::query(), $request);
+
+        $adminLogs = (clone $baseQuery)
+            ->whereHas('actor', fn($q) => $q->where('root_admin', true))
+            ->orderBy('timestamp', 'desc')
+            ->paginate(15, ['*'], 'admin_page');
+
+        $userLogs = (clone $baseQuery)
+            ->whereIn('event', ['auth:fail', 'user:error'])
+            ->whereDoesntHave('actor', fn($q) => $q->where('root_admin', true))
+            ->orderBy('timestamp', 'desc')
+            ->paginate(15, ['*'], 'user_page');
+
+        return view('admin.logs.index', [
+            'adminLogs' => $adminLogs,
+            'userLogs' => $userLogs,
+        ]);
+    }
+
+    private function applyFilters($query, Request $request)
+    {
+        $query->where(function ($q) {
+            $q->whereHas('actor', fn($sub) => $sub->where('root_admin', true))
+              ->orWhereIn('event', ['auth:fail', 'user:error']);
+        })->with('actor');
 
         if ($request->filled('filter.event')) {
             $query->where('event', 'like', $request->input('filter.event') . '%');
@@ -38,20 +56,6 @@ class LogsController extends Controller
             $query->where('timestamp', '<=', $request->input('filter.until'));
         }
 
-        $adminLogs = (clone $query)
-            ->whereHas('actor', fn($q) => $q->where('root_admin', true))
-            ->orderBy('timestamp', 'desc')
-            ->paginate(15, ['*'], 'admin_page');
-
-        $userLogs = (clone $query)
-            ->whereIn('event', ['auth:fail', 'user:error'])
-            ->whereDoesntHave('actor', fn($q) => $q->where('root_admin', true))
-            ->orderBy('timestamp', 'desc')
-            ->paginate(15, ['*'], 'user_page');
-
-        return view('admin.logs.index', [
-            'adminLogs' => $adminLogs,
-            'userLogs' => $userLogs,
-        ]);
+        return $query;
     }
 }
