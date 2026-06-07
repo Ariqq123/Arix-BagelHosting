@@ -7,9 +7,9 @@ return [
 
     'preset' => 'Preset',
     'preset-balanced' => 'Balanced',
-    'preset-aggressive' => 'Aggressive',
-    'preset-maximum' => 'Maximum',
-    'preset-custom' => 'Custom',
+    'preset-max_compression' => 'Max Compression',
+    'preset-fastest' => 'Fastest',
+    'preset-protection' => 'Protection',
 
     'input-file' => 'Input File',
     'select-pack' => 'Select resource pack (.zip)',
