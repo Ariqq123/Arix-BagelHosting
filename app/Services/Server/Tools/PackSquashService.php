@@ -63,6 +63,23 @@ class PackSquashService
                 throw new \RuntimeException("Failed to extract uploaded ZIP file. ZipArchive error code: {$errorCode}");
             }
 
+            // Verify that pack.mcmeta exists after extraction (handles both flat and nested ZIPs)
+            $hasPackMcmeta = file_exists($extractedDir . '/pack.mcmeta');
+            if (!$hasPackMcmeta) {
+                // Check one level deep (common case: pack is inside a folder)
+                $entries = array_diff(scandir($extractedDir), ['.', '..']);
+                if (count($entries) === 1) {
+                    $single = $entries[array_key_first($entries)];
+                    if (is_dir($extractedDir . '/' . $single) && file_exists($extractedDir . '/' . $single . '/pack.mcmeta')) {
+                        $hasPackMcmeta = true;
+                    }
+                }
+            }
+
+            if (!$hasPackMcmeta) {
+                throw new \RuntimeException('Uploaded file does not appear to be a valid Minecraft resource/data pack (missing pack.mcmeta).');
+            }
+
             // Detect if the pack is inside a single top-level folder (very common)
             $entries = array_diff(scandir($extractedDir), ['.', '..']);
             if (count($entries) === 1) {
