@@ -28,7 +28,7 @@ class PackSquashController extends Controller
         $path = $request->file('pack')->store("server-tools/{$server->uuid}/input");
 
         try {
-            $run = $this->service->optimize($server, storage_path("app/{$path}"), $request->preset);
+            $run = $this->service->optimize($server, storage_path("app/private/{$path}"), $request->preset);
             return response()->json($run);
         } catch (\Throwable $e) {
             // Fetch the most recent failed run so we can return logs
