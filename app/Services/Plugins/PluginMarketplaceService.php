@@ -299,13 +299,20 @@ class PluginMarketplaceService
 
             if (!$file) return null;
 
+            $filename = (string) Arr::get($file, 'filename');
+            $downloadUrl = (string) Arr::get($file, 'url');
+
+            if (!str_ends_with(strtolower($filename), '.jar') || !filter_var($downloadUrl, FILTER_VALIDATE_URL)) {
+                return null;
+            }
+
             return [
                 'id' => (string) Arr::get($version, 'id'),
                 'name' => (string) Arr::get($version, 'name'),
                 'versionNumber' => (string) Arr::get($version, 'version_number'),
                 'createdAt' => Arr::get($version, 'date_published'),
-                'filename' => (string) Arr::get($file, 'filename'),
-                'downloadUrl' => (string) Arr::get($file, 'url'),
+                'filename' => $filename,
+                'downloadUrl' => $downloadUrl,
             ];
         })->filter()->values()->all();
     }
